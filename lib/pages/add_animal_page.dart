@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
@@ -67,7 +68,7 @@ class _AddAnimalPageState extends State<AddAnimalPage> {
     } catch (e, st) {
       debugPrint('Image pick error: $e\n$st');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Couldn’t pick image: $e')),
+        SnackBar(content: Text('couldnt_pick_image'.tr(args: ['${e}']))),
       );
     }
   }
@@ -100,7 +101,7 @@ class _AddAnimalPageState extends State<AddAnimalPage> {
     } catch (e, st) {
       debugPrint('Save animal error: $e\n$st');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Couldn’t save animal: $e')),
+        SnackBar(content: Text('couldnt_save_animal'.tr(args: ['${e}']))),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -109,9 +110,10 @@ class _AddAnimalPageState extends State<AddAnimalPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.index != null;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.index != null ? 'Edit Animal' : 'Add Animal'),
+        title: Text(isEditing ? 'edit_animal'.tr() : 'add_animal'.tr()),
       ),
       body: Stack(
         children: [
@@ -124,33 +126,40 @@ class _AddAnimalPageState extends State<AddAnimalPage> {
                 children: [
                   TextFormField(
                     controller: nameController,
-                    decoration: const InputDecoration(labelText: "Name"),
-                    validator: (val) => val == null || val.isEmpty
-                        ? "Enter name"
+                    decoration: InputDecoration(
+                      labelText: 'name'.tr(),
+                    ),
+                    validator: (val) => (val == null || val.isEmpty)
+                        ? 'enter_name'.tr()
                         : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: breedController,
-                    decoration: const InputDecoration(labelText: "Breed"),
+                    decoration: InputDecoration(
+                      labelText: 'breed'.tr(),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: priceController,
-                    decoration: const InputDecoration(labelText: "Price"),
+                    decoration: InputDecoration(
+                      labelText: 'price'.tr(),
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: descriptionController,
-                    decoration:
-                        const InputDecoration(labelText: "Description"),
+                    decoration: InputDecoration(
+                      labelText: 'description'.tr(),
+                    ),
                     maxLines: 3,
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    "Upload Image",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    'upload_image'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   GestureDetector(
@@ -169,13 +178,13 @@ class _AddAnimalPageState extends State<AddAnimalPage> {
                               fit: BoxFit.cover,
                               width: double.infinity,
                             )
-                          : const Text("Tap to select image"),
+                          : Text('tap_to_select_image'.tr()),
                     ),
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: _isSaving ? null : _saveAnimal,
-                    child: Text(widget.index != null ? 'Update' : 'Save'),
+                    child: Text(isEditing ? 'update'.tr() : 'save'.tr()),
                   ),
                 ],
               ),
@@ -184,11 +193,8 @@ class _AddAnimalPageState extends State<AddAnimalPage> {
 
           // ——— Blocking loading overlay ———
           if (_isSaving)
-            Positioned.fill(
-              child: ModalBarrier(
-                color: Colors.black45,
-                dismissible: false,
-              ),
+            const Positioned.fill(
+              child: ModalBarrier(color: Colors.black45, dismissible: false),
             ),
           if (_isSaving)
             Center(

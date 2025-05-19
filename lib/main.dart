@@ -1,54 +1,64 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 
 import 'providers/animal_provider.dart';
 import 'providers/theme_provider.dart';
-import 'widgets/bottom_nav_bar.dart';
+import 'providers/locale_provider.dart';
 import 'pages/login_page.dart';
 import 'pages/details_page.dart';
+import 'widgets/bottom_nav_bar.dart';
 
 Future<void> main() async {
-  // 1. Make sure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Load your .env file
+  // Load .env
   await dotenv.load(fileName: '.env');
 
-  // 3. Initialize Hive for local storage
+  // Hive
   await Hive.initFlutter();
 
-  // 4. Initialize Firebase using values from .env
+  // EasyLocalization
+  await EasyLocalization.ensureInitialized();
+
+  // Firebase
   await Firebase.initializeApp(
     options: FirebaseOptions(
-      apiKey:               dotenv.env['FIREBASE_API_KEY']!,
-      authDomain:           dotenv.env['FIREBASE_AUTH_DOMAIN']!,
-      projectId:            dotenv.env['FIREBASE_PROJECT_ID']!,
-      storageBucket:        dotenv.env['FIREBASE_STORAGE_BUCKET']!,
-      messagingSenderId:    dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
-      appId:                dotenv.env['FIREBASE_APP_ID']!,
+      apiKey: dotenv.env['FIREBASE_API_KEY']!,
+      authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN']!,
+      projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+      storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+      messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+      appId: dotenv.env['FIREBASE_APP_ID']!,
     ),
   );
 
-  // 5. Prepare your providers
-  final animalProvider = AnimalProvider();
-  await animalProvider.initHive();
+  // Providers — only init once each
+  final animalProvider = AnimalProvider()..initHive();
+  final themeProvider = ThemeProvider()..init();
+  final localeProvider = LocaleProvider()..init();
 
-  final themeProvider = ThemeProvider();
-  await themeProvider.init();
-
-  // 6. Launch the app with MultiProvider
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AnimalProvider>.value(value: animalProvider),
-        ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
+    EasyLocalization(
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ru'),
+        Locale('kk'),
       ],
-      child: const MyApp(),
+      path: 'translations', 
+      fallbackLocale: const Locale('en'),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: animalProvider),
+          ChangeNotifierProvider.value(value: themeProvider),
+          ChangeNotifierProvider.value(value: localeProvider),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -58,23 +68,25 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use watch so that MyApp rebuilds when the theme changes
-    final themeProvider = context.watch<ThemeProvider>();
+    final theme = context.watch<ThemeProvider>().themeData;
 
     return MaterialApp(
-      title: 'Animal Market',
       debugShowCheckedModeBanner: false,
-      theme: themeProvider.themeData,
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: context.localizationDelegates,
+      title: tr('app.title'), // your key in JSON
+      theme: theme,
       initialRoute: '/',
       routes: {
-        '/': (context) => const LoginPage(),
-        '/details': (context) => const DetailsPage(),
+        '/': (_) => const LoginPage(),
+        '/details': (_) => const DetailsPage(),
       },
-      // Dismiss keyboard on tap-away
-      builder: (context, child) => GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+      builder: (ctx, child) => GestureDetector(
+        onTap: () => FocusScope.of(ctx).unfocus(),
         child: child,
       ),
     );
   }
 }
+

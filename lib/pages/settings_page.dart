@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../providers/theme_provider.dart';
 import '../providers/animal_provider.dart';
+import '../providers/locale_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -16,68 +18,49 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Rebuild when theme changes
     final themeProvider = context.watch<ThemeProvider>();
-    // Read-only for animal operations
+    final localeProvider = context.watch<LocaleProvider>();
     final animalProvider = context.read<AnimalProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Settings")),
+      appBar: AppBar(title: Text('settings.title'.tr())),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Dark mode toggle with error safety
+            // Dark Mode Switch
             SwitchListTile(
-              title: const Text("Dark Mode"),
+              title: Text('settings.dark_mode'.tr()),
               value: themeProvider.isDark,
-              onChanged: (_) async {
-                try {
-                  await themeProvider.toggleTheme();
-                } catch (e) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(e.toString())));
-                }
-              },
+              onChanged: (_) => themeProvider.toggleTheme(),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
-            const Align(
+            // Accent Color Picker
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Select App Theme Color:",
-                style: TextStyle(fontSize: 16),
+                'settings.accent_color'.tr(),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
-            const SizedBox(height: 10),
-
-            // Theme color picker
+            const SizedBox(height: 12),
             SizedBox(
-              height: 80,
+              height: 60,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: themeProvider.colors.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (_, index) {
-                  final color = themeProvider.colors[index];
-                  final isSelected = themeProvider.colorIndex == index;
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, i) {
+                  final isSelected = themeProvider.colorIndex == i;
                   return GestureDetector(
-                    onTap: () {
-                      try {
-                        themeProvider.changeColor(index);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Couldn’t change color: $e')),
-                        );
-                      }
-                    },
+                    onTap: () => themeProvider.changeColor(i),
                     child: Container(
-                      width: 50,
-                      height: 50,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
-                        color: color,
+                        color: themeProvider.colors[i],
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: isSelected ? Colors.black : Colors.transparent,
@@ -90,81 +73,107 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
 
+            const SizedBox(height: 32),
+
+            // Language Selector
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text('settings.language'.tr()),
+              trailing: DropdownButton<Locale>(
+                value: localeProvider.currentLocale,
+                underline: const SizedBox(),
+                items: localeProvider.supportedLocales.map((loc) {
+                  final code = loc.languageCode.toUpperCase();
+                  final flag = loc.languageCode == 'en'
+                      ? '🇺🇸'
+                      : loc.languageCode == 'ru'
+                          ? '🇷🇺'
+                          : '🇰🇿';
+                  return DropdownMenuItem(
+                    value: loc,
+                    child: Row(
+                      children: [
+                        Text(flag, style: const TextStyle(fontSize: 20)),
+                        const SizedBox(width: 8),
+                        Text(code),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (newLocale) {
+                  if (newLocale != null) {
+                    localeProvider.setLocale(newLocale);
+                    context.setLocale(newLocale);
+                  }
+                },
+              ),
+            ),
+
             const Spacer(),
 
-            // Reset button with confirmation & loading state
+            // Reset All Animal Data Button
             ElevatedButton.icon(
               icon: const Icon(Icons.delete_forever),
-              label:
-                  _isClearing
-                      ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                      : const Text("Reset All Animal Data"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed:
-                  _isClearing
-                      ? null
-                      : () async {
-                        // 1) Confirm
-                        final confirmed = await showDialog<bool>(
-                          context: context,
-                          builder:
-                              (ctx) => AlertDialog(
-                                title: const Text('Confirm Data Reset'),
-                                content: const Text(
-                                  'This will permanently delete all animal records. Continue?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.of(ctx).pop(false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                    ),
-                                    onPressed:
-                                        () => Navigator.of(ctx).pop(true),
-                                    child: const Text('RESET'),
-                                  ),
-                                ],
-                              ),
-                        );
-
-                        if (confirmed != true) return;
-
-                        // 2) Clear
-                        setState(() => _isClearing = true);
-                        try {
-                          await animalProvider.clearAllAnimals();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("All animal data has been reset."),
-                            ),
-                          );
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Failed to reset data: ${e.toString()}",
-                              ),
-                            ),
-                          );
-                        } finally {
-                          if (mounted) setState(() => _isClearing = false);
-                        }
-                      },
+              label: _isClearing
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text('settings.reset_button'.tr()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                minimumSize: const Size.fromHeight(48),
+              ),
+              onPressed: _isClearing ? null : _confirmAndClearAll,
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _confirmAndClearAll() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('settings.reset_confirm_title'.tr()),
+        content: Text('settings.reset_confirm_text'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('settings.cancel'.tr()),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('settings.reset_action'.tr()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isClearing = true);
+    try {
+      await context.read<AnimalProvider>().clearAllAnimals();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('settings.reset_success'.tr())),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('settings.reset_failure'.tr(namedArgs: {'error': e.toString()})),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isClearing = false);
+    }
   }
 }

@@ -1,0 +1,108 @@
+{
+	"appTitle": "Animal Market",
+	"login": "Login",
+	"sign_in_with_email": "Sign in with Email",
+	"no_animals_found": "No animals found.",
+	"dark_mode": "Dark Mode",
+	"select_accent_color": "Select App Accent Color:",
+	"app_language": "App Language",
+	"reset_all_data_title": "Confirm Reset",
+	"reset_all_data_content": "This will delete all animal records permanently. Continue?",
+	"cancel": "Cancel",
+	"reset": "RESET",
+	"reset_success": "All animal data reset.",
+	"reset_fail": "Failed to reset data.",
+	"home": {
+		"title": "Animals for Sale",
+		"search_hint": "Search by name or breed",
+		"empty_message": "No animals found.",
+		"tooltip_add_manual": "Add Manually",
+		"tooltip_add_api": "Add from API",
+		"snackbar_api_error": "Couldn’t add from API: {error}"
+	},
+	"sort": {
+		"name_asc": "Name ↑",
+		"name_desc": "Name ↓",
+		"price_asc": "Price ↑",
+		"price_desc": "Price ↓"
+	},
+	"add_animal": "Add Animal",
+	"edit_animal": "Edit Animal",
+	"name": "Name",
+	"breed": "Breed",
+	"price": "Price",
+	"description": "Description",
+	"enter_name": "Please enter a name",
+	"upload_image": "Upload Image",
+	"tap_to_select_image": "Tap to select image",
+	"save": "Save",
+	"update": "Update",
+	"couldnt_pick_image": "Couldn’t pick image: {0}",
+	"couldnt_save_animal": "Couldn’t save animal: {0}",
+	"no_animal_selected": "No animal selected.",
+	"breed_label": "Breed: {{breed}}",
+	"price_label": "Price: ${{price}}",
+	"login_title": "Login",
+	"email": "Email",
+	"enter_email": "Please enter your email",
+	"invalid_email": "Enter a valid email address",
+	"password": "Password",
+	"enter_password": "Please enter your password",
+	"short_password": "Password must be at least 6 characters",
+	"sign_in_email": "Sign in with Email",
+	"sign_in_google": "Sign in with Google",
+	"sign_in_github": "Sign in with GitHub",
+	"no_account": "Don't have an account? Sign up",
+	"auth_error": "Authentication error: {{error}}",
+	"map": {
+		"title": "Map with Markers",
+		"your_location": "Your location",
+		"error_services_disabled": "Location services are disabled.",
+		"error_permission_denied": "Location permission denied.",
+		"error_permission_denied_forever": "Location permission permanently denied."
+	},
+	"shop": {
+		"shop.pushkina": {
+			"title": "ZooShop on Pushkina",
+			"desc": "Address: Alexandra Pushkina 72/1"
+		},
+		"shop.alatau": {
+			"title": "ZooShop on Alatau",
+			"desc": "Address: Alatau complex"
+		},
+		"shop.shapagat": {
+			"title": "ZooShop Shapagat",
+			"desc": "Address: Shapagat supermarket"
+		}
+	},
+	"profile": {
+		"title": "Profile",
+		"tooltip_save": "Save Profile",
+		"tooltip_edit": "Edit Profile",
+		"tooltip_sign_out": "Sign Out",
+		"default_bio": "Lover of animals and nature.",
+		"error_pick_image": "Error picking image: {0}",
+		"saved": "Profile saved",
+		"error_save": "Save failed: {0}",
+		"label_name": "Name",
+		"label_email": "Email",
+		"label_bio": "Bio",
+		"error_name_empty": "Enter your name",
+		"error_email_empty": "Enter your email",
+		"error_email_invalid": "Enter a valid email",
+		"error_bio_empty": "Tell us something about yourself"
+	},
+	"settings": {
+		"title": "Settings",
+		"dark_mode": "Dark Mode",
+		"accent_color": "Select App Accent Color:",
+		"language": "App Language",
+		"reset_button": "Reset All Data",
+		"reset_confirm_title": "Confirm Reset",
+		"reset_confirm_text": "This will delete all animal records permanently. Continue?",
+		"cancel": "Cancel",
+		"reset_action": "RESET",
+		"reset_success": "All animal data reset.",
+		"reset_failure": "Failed to reset: {error}"
+	}
+}

@@ -1,10 +1,9 @@
-// lib/pages/map_page.dart
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({Key? key}) : super(key: key);
@@ -30,35 +29,21 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
 
-    // 1) Pre‐add your three static markers
+    // 1) Pre-add your three static markers with localized titles/snippets
     final points = <LatLng>[
       LatLng(51.17, 71.49),
       LatLng(51.15, 71.45),
       LatLng(51.18, 71.44),
     ];
-    final List<List<String>> labels = [
-      [
-        'ZooShop on Alexandr Pushkina',
-        'You can come and see the animal by address: Alexandra Pushkina 72/1',
-      ],
-      [
-        'ZooShop on Alatau',
-        'You can come and see the animal by address: Alatau complex',
-      ],
-      [
-        'ZooShop Shapagat',
-        'You can come and see the animal by address: Shapagat supermarket',
-      ],
-    ];
-
+    final shopKeys = ['shop.pushkina', 'shop.alatau', 'shop.shapagat'];
     for (var i = 0; i < points.length; i++) {
       _markers.add(
         Marker(
           markerId: MarkerId('static_$i'),
           position: points[i],
           infoWindow: InfoWindow(
-            title: labels[i][0], // ← your custom title
-            snippet: labels[i][1],
+            title: tr('$shopKeys[i].title'),
+            snippet: tr('$shopKeys[i].desc'),
           ),
         ),
       );
@@ -78,21 +63,23 @@ class _MapPageState extends State<MapPage> {
       final pos = await _determinePosition();
       final userLoc = LatLng(pos.latitude, pos.longitude);
 
-      // Add the blue‐hued user marker
+      // Add the blue-hued user marker with a localized label
       _markers.add(
         Marker(
           markerId: const MarkerId('user_location'),
           position: userLoc,
-          infoWindow: const InfoWindow(title: 'Your location'),
+          infoWindow: InfoWindow(title: tr('map.your_location')),
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueAzure,
           ),
         ),
       );
 
-      // Wait for the map controller (map must already be in the tree)
+      // Animate camera to user location
       final mapCtrl = await _controller.future;
-      mapCtrl.animateCamera(CameraUpdate.newLatLngZoom(userLoc, 14));
+      mapCtrl.animateCamera(
+        CameraUpdate.newLatLngZoom(userLoc, 14),
+      );
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -102,17 +89,17 @@ class _MapPageState extends State<MapPage> {
 
   Future<Position> _determinePosition() async {
     if (!await Geolocator.isLocationServiceEnabled()) {
-      throw Exception('Location services are disabled.');
+      throw Exception(tr('map.error_services_disabled'));
     }
     var perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) {
       perm = await Geolocator.requestPermission();
       if (perm == LocationPermission.denied) {
-        throw Exception('Location permission denied.');
+        throw Exception(tr('map.error_permission_denied'));
       }
     }
     if (perm == LocationPermission.deniedForever) {
-      throw Exception('Location permission permanently denied.');
+      throw Exception(tr('map.error_permission_denied_forever'));
     }
     return Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
@@ -128,10 +115,12 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Map with Markers')),
+      appBar: AppBar(
+        title: Text(tr('map.title')),
+      ),
       body: Stack(
         children: [
-          // The map is always in the tree
+          // Always show the map
           GoogleMap(
             onMapCreated: _onMapCreated,
             initialCameraPosition: _initialCam,
@@ -140,16 +129,21 @@ class _MapPageState extends State<MapPage> {
             myLocationButtonEnabled: true,
           ),
 
-          // If loading, show spinner overlay
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
+          // Loading spinner overlay
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator()),
 
-          // If error, replace spinner with message
+          // Error message overlay
           if (!_isLoading && _error != null)
             Center(
               child: Container(
                 color: Colors.white70,
                 padding: const EdgeInsets.all(16),
-                child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
         ],

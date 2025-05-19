@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'register_page.dart';
+import 'package:easy_localization/easy_localization.dart';
 
+import 'register_page.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,7 +16,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
@@ -30,23 +30,16 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _signInWithEmail() async {
-    // 1) Validate form
     if (!_formKey.currentState!.validate()) return;
-
-    // 2) Clear previous errors & show loading
     setState(() {
       _isLoading = true;
       _errorText = null;
     });
-
     try {
-      // 3) Attempt Firebase email/password sign-in
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text.trim(),
       );
-
-      // 4) On success, go to home
       _goToHome();
     } on FirebaseAuthException catch (e) {
       setState(() => _errorText = e.message);
@@ -62,20 +55,14 @@ class _LoginPageState extends State<LoginPage> {
       _isLoading = true;
       _errorText = null;
     });
-
     try {
       if (kIsWeb) {
         await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
       } else {
-        final googleUser =
-            await GoogleSignIn(
-              clientId: dotenv.env['GOOGLE_CLIENT_ID'],
-            ).signIn();
-
-        if (googleUser == null) {
-          // User aborted
-          return;
-        }
+        final googleUser = await GoogleSignIn(
+          clientId: dotenv.env['GOOGLE_CLIENT_ID'],
+        ).signIn();
+        if (googleUser == null) return; // aborted
 
         final auth = await googleUser.authentication;
         final cred = GoogleAuthProvider.credential(
@@ -84,7 +71,29 @@ class _LoginPageState extends State<LoginPage> {
         );
         await FirebaseAuth.instance.signInWithCredential(cred);
       }
+      _goToHome();
+    } on FirebaseAuthException catch (e) {
+      setState(() => _errorText = e.message);
+    } catch (e) {
+      setState(() => _errorText = e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
+  Future<void> _signInWithGitHub() async {
+    setState(() {
+      _isLoading = true;
+      _errorText = null;
+    });
+    try {
+      final provider = GithubAuthProvider()..addScope('read:user');
+      if (kIsWeb) {
+        await FirebaseAuth.instance.signInWithPopup(provider);
+      } else {
+        await FirebaseAuth.instance.signInWithRedirect(provider);
+        // On return, Firebase will complete the flow.
+      }
       _goToHome();
     } on FirebaseAuthException catch (e) {
       setState(() => _errorText = e.message);
@@ -96,15 +105,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _goToHome() {
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const BottomNavBar()));
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const BottomNavBar()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Dismiss keyboard when tapping outside
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Stack(
@@ -117,100 +125,96 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Text(
+                        'login_title'.tr(),
+                        style: const TextStyle(
+                          fontSize: 32, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 24),
 
-                      // — Email Field —
                       TextFormField(
                         controller: _emailCtrl,
-                        decoration: const InputDecoration(labelText: 'Email'),
+                        decoration: InputDecoration(
+                          labelText: 'email'.tr(),
+                        ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (val) {
                           if (val == null || val.isEmpty) {
-                            return 'Please enter your email';
+                            return 'enter_email'.tr();
                           }
                           if (!val.contains('@')) {
-                            return 'Enter a valid email address';
+                            return 'invalid_email'.tr();
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 12),
 
-                      // — Password Field —
                       TextFormField(
                         controller: _passwordCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Password',
+                        decoration: InputDecoration(
+                          labelText: 'password'.tr(),
                         ),
                         obscureText: true,
                         validator: (val) {
                           if (val == null || val.isEmpty) {
-                            return 'Please enter your password';
+                            return 'enter_password'.tr();
                           }
                           if (val.length < 6) {
-                            return 'Password must be at least 6 characters';
+                            return 'short_password'.tr();
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 24),
 
-                      // — Error Message —
                       if (_errorText != null) ...[
                         Text(
-                          _errorText!,
+                          'auth_error'.tr(namedArgs: {'error': _errorText!}),
                           style: const TextStyle(color: Colors.red),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
                       ],
 
-                      // — Email Sign-In Button —
                       ElevatedButton(
                         onPressed: _isLoading ? null : _signInWithEmail,
-                        child:
-                            _isLoading
-                                ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                                : const Text('Sign in with Email'),
+                        child: _isLoading
+                          ? const SizedBox(
+                              width: 20, height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text('sign_in_email'.tr()),
                       ),
                       const SizedBox(height: 12),
 
-                      // — Google Sign-In Button —
                       ElevatedButton.icon(
                         icon: Image.asset(
                           'assets/google_logo.png',
-                          height: 24,
-                          width: 24,
-                        ),
-                        label: const Text('Sign in with Google'),
+                          height: 24, width: 24),
+                        label: Text('sign_in_google'.tr()),
                         onPressed: _isLoading ? null : _signInWithGoogle,
                       ),
                       const SizedBox(height: 12),
+
+                      ElevatedButton.icon(
+                        icon: Image.asset(
+                          'assets/github.png',
+                          height: 24, width: 24),
+                        label: Text('sign_in_github'.tr()),
+                        onPressed: _isLoading ? null : _signInWithGitHub,
+                      ),
+
+                      const SizedBox(height: 12),
                       TextButton(
-                        onPressed:
-                            _isLoading
-                                ? null
-                                : () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const RegisterPage(),
-                                    ),
-                                  );
-                                },
-                        child: const Text("Don't have an account? Sign up"),
+                        onPressed: _isLoading
+                          ? null
+                          : () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterPage(),
+                              ),
+                            ),
+                        child: Text('no_account'.tr()),
                       ),
                     ],
                   ),
@@ -218,12 +222,13 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
 
-            // — Fullscreen Loading Overlay —
             if (_isLoading)
               Positioned.fill(
                 child: Container(
                   color: Colors.black45,
-                  child: const Center(child: CircularProgressIndicator()),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 ),
               ),
           ],

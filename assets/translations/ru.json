@@ -1,0 +1,108 @@
+{
+	"appTitle": "Зоорынок",
+	"login": "Вход",
+	"sign_in_with_email": "Войти по Email",
+	"no_animals_found": "Животных не найдено.",
+	"dark_mode": "Тёмная тема",
+	"select_accent_color": "Выберите цвет акцента приложения:",
+	"app_language": "Язык приложения",
+	"reset_all_data_title": "Подтвердить сброс",
+	"reset_all_data_content": "Это безвозвратно удалит все записи животных. Продолжить?",
+	"cancel": "Отмена",
+	"reset": "СБРОС",
+	"reset_success": "Все данные животных сброшены.",
+	"reset_fail": "Не удалось сбросить данные.",
+	"home": {
+		"title": "Животные на продажу",
+		"search_hint": "Поиск по имени или породе",
+		"empty_message": "Животных не найдено.",
+		"tooltip_add_manual": "Добавить вручную",
+		"tooltip_add_api": "Добавить из API",
+		"snackbar_api_error": "Не удалось добавить из API: {error}"
+	},
+	"sort": {
+		"name_asc": "Имя ↑",
+		"name_desc": "Имя ↓",
+		"price_asc": "Цена ↑",
+		"price_desc": "Цена ↓"
+	},
+	"add_animal": "Добавить животное",
+	"edit_animal": "Редактировать животное",
+	"name": "Название",
+	"breed": "Порода",
+	"price": "Цена",
+	"description": "Описание",
+	"enter_name": "Пожалуйста, введите название",
+	"upload_image": "Загрузить изображение",
+	"tap_to_select_image": "Нажмите, чтобы выбрать изображение",
+	"save": "Сохранить",
+	"update": "Обновить",
+	"couldnt_pick_image": "Не удалось выбрать изображение: {0}",
+	"couldnt_save_animal": "Не удалось сохранить животное: {0}",
+	"no_animal_selected": "Животное не выбрано.",
+	"breed_label": "Порода: {{breed}}",
+	"price_label": "Цена: ${{price}}",
+	"login_title": "Вход",
+	"email": "Email",
+	"enter_email": "Пожалуйста, введите email",
+	"invalid_email": "Введите корректный email",
+	"password": "Пароль",
+	"enter_password": "Пожалуйста, введите пароль",
+	"short_password": "Пароль должен быть не менее 6 символов",
+	"sign_in_email": "Войти по Email",
+	"sign_in_google": "Войти через Google",
+	"sign_in_github": "Войти через GitHub",
+	"no_account": "Нет аккаунта? Зарегистрируйтесь",
+	"auth_error": "Ошибка аутентификации: {{error}}",
+	"map": {
+		"title": "Map with Markers",
+		"your_location": "Your location",
+		"error_services_disabled": "Location services are disabled.",
+		"error_permission_denied": "Location permission denied.",
+		"error_permission_denied_forever": "Location permission permanently denied."
+	},
+	"shop": {
+		"shop.pushkina": {
+			"title": "ZooShop on Pushkina",
+			"desc": "Address: Alexandra Pushkina 72/1"
+		},
+		"shop.alatau": {
+			"title": "ZooShop on Alatau",
+			"desc": "Address: Alatau complex"
+		},
+		"shop.shapagat": {
+			"title": "ZooShop Shapagat",
+			"desc": "Address: Shapagat supermarket"
+		}
+	},
+	"profile": {
+		"title": "Профиль",
+		"tooltip_save": "Сохранить профиль",
+		"tooltip_edit": "Редактировать профиль",
+		"tooltip_sign_out": "Выйти",
+		"default_bio": "Любитель животных и природы.",
+		"error_pick_image": "Ошибка выбора изображения: {0}",
+		"saved": "Профиль сохранен",
+		"error_save": "Не удалось сохранить: {0}",
+		"label_name": "Имя",
+		"label_email": "Email",
+		"label_bio": "О себе",
+		"error_name_empty": "Введите имя",
+		"error_email_empty": "Введите email",
+		"error_email_invalid": "Введите корректный email",
+		"error_bio_empty": "Расскажите о себе"
+	},
+	"settings": {
+		"title": "Настройки",
+		"dark_mode": "Тёмная тема",
+		"accent_color": "Выберите акцентный цвет:",
+		"language": "Язык приложения",
+		"reset_button": "Сбросить все данные",
+		"reset_confirm_title": "Подтвердите сброс",
+		"reset_confirm_text": "Это навсегда удалит все записи о животных. Продолжить?",
+		"cancel": "Отмена",
+		"reset_action": "СБРОС",
+		"reset_success": "Данные успешно сброшены.",
+		"reset_failure": "Не удалось сбросить: {error}"
+	}
+}

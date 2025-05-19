@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_cross_final/widgets/bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../models/animal.dart';
 import '../providers/animal_provider.dart';
@@ -15,11 +16,11 @@ class DetailsPage extends StatelessWidget {
     );
 
     if (animal == null) {
+      // delay showing SnackBar until after frame
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('No animal selected.')));
-        // if we can go back, just pop; otherwise send them to the home/tabs page:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('no_animal_selected'.tr())),
+        );
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         } else {
@@ -28,7 +29,6 @@ class DetailsPage extends StatelessWidget {
           );
         }
       });
-      // render something briefly while the redirect happens
       return const SizedBox.shrink();
     }
 
@@ -74,21 +74,25 @@ class DetailsPage extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               animal.name,
-              style: textTheme.headlineMedium, // was headline5
+              style: textTheme.headlineMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Breed: ${animal.breed}',
-              style: textTheme.titleMedium, // was subtitle1
+              // e.g. "Breed: Golden Retriever"
+              tr('breed_label', namedArgs: {'breed': animal.breed}),
+              style: textTheme.titleMedium,
             ),
             Text(
-              'Price: \$${animal.price.toStringAsFixed(2)}',
-              style: textTheme.titleMedium, // was subtitle1
+              // e.g. "Price: $99.99"
+              tr('price_label', namedArgs: {
+                'price': animal.price.toStringAsFixed(2)
+              }),
+              style: textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
             Text(
               animal.description,
-              style: textTheme.bodyMedium, // was bodyText2
+              style: textTheme.bodyMedium,
             ),
           ],
         ),

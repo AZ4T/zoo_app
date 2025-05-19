@@ -215,3 +215,4 @@ class AnimalProvider extends ChangeNotifier {
     }
   }
 }
+

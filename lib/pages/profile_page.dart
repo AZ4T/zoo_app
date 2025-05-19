@@ -2,7 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
+
+import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -12,19 +16,23 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
+  final User? _user = FirebaseAuth.instance.currentUser;
 
   bool _isEditing = false;
-  bool _isSaving  = false;
+  bool _isSaving = false;
 
-  String _name  = "John Doe";
-  String _email = "johndoe@email.com";
-  String _bio   = "Lover of animals and nature.";
+  late String _name;
+  late String _email;
+  String _bio = "profile.default_bio".tr();
 
   File? _profileImage;
-
   final _nameCtrl  = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _bioCtrl   = TextEditingController();
+
+  _ProfilePageState()
+      : _name  = FirebaseAuth.instance.currentUser?.displayName ?? "",
+        _email = FirebaseAuth.instance.currentUser?.email       ?? "";
 
   @override
   void initState() {
@@ -53,42 +61,34 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking image: $e')),
+        SnackBar(content: Text('profile.error_pick_image'.tr(args: ['${e}']))),
       );
     }
   }
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isSaving = true;
-    });
+    setState(() => _isSaving = true);
 
     try {
-      // Simulate saving delay (or save to your backend/local storage here)
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Optionally update Firebase user here...
 
+      await Future.delayed(const Duration(milliseconds: 500));
       setState(() {
-        _name  = _nameCtrl.text.trim();
-        _email = _emailCtrl.text.trim();
-        _bio   = _bioCtrl.text.trim();
+        _name      = _nameCtrl.text.trim();
+        _email     = _emailCtrl.text.trim();
+        _bio       = _bioCtrl.text.trim();
         _isEditing = false;
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile saved')),
+        SnackBar(content: Text('profile.saved'.tr())),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save profile: $e')),
+        SnackBar(content: Text('profile.error_save'.tr(args: ['${e}']))),
       );
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -96,10 +96,16 @@ class _ProfilePageState extends State<ProfilePage> {
     if (_isEditing) {
       _saveProfile();
     } else {
-      setState(() {
-        _isEditing = true;
-      });
+      setState(() => _isEditing = true);
     }
+  }
+
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (_) => false,
+    );
   }
 
   @override
@@ -109,98 +115,124 @@ class _ProfilePageState extends State<ProfilePage> {
       imageWidget = kIsWeb
           ? Image.network(_profileImage!.path, fit: BoxFit.cover)
           : Image.file(_profileImage!, fit: BoxFit.cover);
+    } else if (_user?.photoURL != null) {
+      imageWidget = Image.network(_user!.photoURL!, fit: BoxFit.cover);
     } else {
       imageWidget = const Icon(Icons.person, size: 100, color: Colors.grey);
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile"),
+        title: Text('profile.title'.tr()),
         actions: [
-          _isSaving
-              ? const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                )
-              : IconButton(
-                  icon: Icon(_isEditing ? Icons.check : Icons.edit),
-                  onPressed: _toggleEditing,
-                ),
+          if (!_isSaving)
+            IconButton(
+              icon: Icon(_isEditing ? Icons.check : Icons.edit),
+              tooltip: _isEditing
+                  ? 'profile.tooltip_save'.tr()
+                  : 'profile.tooltip_edit'.tr(),
+              onPressed: _toggleEditing,
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'profile.tooltip_sign_out'.tr(),
+            onPressed: _signOut,
+          ),
         ],
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: _isEditing ? _pickImage : null,
-                  child: CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Colors.grey.shade300,
-                    child: ClipOval(
-                      child: SizedBox(
-                        width: 120,
-                        height: 120,
-                        child: imageWidget,
-                      ),
+          child: Column(
+            children: [
+              // Avatar
+              GestureDetector(
+                onTap: _isEditing ? _pickImage : null,
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Colors.grey.shade300,
+                  child: ClipOval(
+                    child: SizedBox(
+                      width: 120,
+                      height: 120,
+                      child: imageWidget,
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+              ),
+              const SizedBox(height: 20),
 
-                // Name
-                TextFormField(
-                  controller: _nameCtrl,
-                  enabled: _isEditing,
-                  decoration: const InputDecoration(labelText: "Name"),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? "Enter your name" : null,
+              // Display user info if not editing
+              if (!_isEditing) ...[
+                Text(
+                  _user?.displayName ?? _name,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                const SizedBox(height: 12),
-
-                // Email
-                TextFormField(
-                  controller: _emailCtrl,
-                  enabled: _isEditing,
-                  decoration: const InputDecoration(labelText: "Email"),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return "Enter your email";
-                    }
-                    if (!v.contains('@')) {
-                      return "Enter a valid email";
-                    }
-                    return null;
-                  },
+                const SizedBox(height: 4),
+                Text(
+                  _user?.email ?? _email,
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
-                const SizedBox(height: 12),
-
-                // Bio
-                TextFormField(
-                  controller: _bioCtrl,
-                  enabled: _isEditing,
-                  decoration: const InputDecoration(labelText: "Bio"),
-                  maxLines: 3,
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? "Tell us something about yourself"
-                      : null,
-                ),
+                const Divider(height: 32),
               ],
-            ),
+
+              // Editable form
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _nameCtrl,
+                      enabled: _isEditing,
+                      decoration: InputDecoration(
+                        labelText: 'profile.label_name'.tr(),
+                      ),
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty)
+                              ? 'profile.error_name_empty'.tr()
+                              : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _emailCtrl,
+                      enabled: _isEditing,
+                      decoration: InputDecoration(
+                        labelText: 'profile.label_email'.tr(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'profile.error_email_empty'.tr();
+                        }
+                        if (!v.contains('@')) {
+                          return 'profile.error_email_invalid'.tr();
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _bioCtrl,
+                      enabled: _isEditing,
+                      decoration: InputDecoration(
+                        labelText: 'profile.label_bio'.tr(),
+                      ),
+                      maxLines: 3,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty)
+                              ? 'profile.error_bio_empty'.tr()
+                              : null,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

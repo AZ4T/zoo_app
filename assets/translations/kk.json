@@ -1,0 +1,108 @@
+{
+	"appTitle": "Жануарлар нарығы",
+	"login": "Кіру",
+	"sign_in_with_email": "Email арқылы кіру",
+	"no_animals_found": "Жануар табылмады.",
+	"dark_mode": "Қараңғы режим",
+	"select_accent_color": "Акцент түсін таңдаңыз:",
+	"app_language": "Қолданба тілі",
+	"reset_all_data_title": "Қалпына келтіруді растау",
+	"reset_all_data_content": "Барлық жануар жазбалары өшіп кетеді. Жалғастыру?",
+	"cancel": "Бас тарту",
+	"reset": "ҚАЛПЫНА КЕЛТІРУ",
+	"reset_success": "Барлық жануар деректері қалпына келтірілді.",
+	"reset_fail": "Деректерді қалпына келтіру мүмкін болмады.",
+	"home": {
+		"title": "Сатуға арналған жануарлар",
+		"search_hint": "Атын немесе тұқымын іздеу",
+		"empty_message": "Жануарлар табылмады.",
+		"tooltip_add_manual": "Қолмен қосу",
+		"tooltip_add_api": "API-ден қосу",
+		"snackbar_api_error": "API-ден қоса алмады: {error}"
+	},
+	"sort": {
+		"name_asc": "Аты ↑",
+		"name_desc": "Аты ↓",
+		"price_asc": "Бағасы ↑",
+		"price_desc": "Бағасы ↓"
+	},
+	"add_animal": "Жануар қосу",
+	"edit_animal": "Жануарды өңдеу",
+	"name": "Аты",
+	"breed": "Тұқымы",
+	"price": "Бағасы",
+	"description": "Сипаттамасы",
+	"enter_name": "Атын енгізіңіз",
+	"upload_image": "Суретті жүктеу",
+	"tap_to_select_image": "Суретті таңдау үшін түртіңіз",
+	"save": "Сақтау",
+	"update": "Жаңарту",
+	"couldnt_pick_image": "Суретті таңдай алмады: {0}",
+	"couldnt_save_animal": "Жануарды сақтай алмады: {0}",
+	"no_animal_selected": "Жануар таңдалмады.",
+	"breed_label": "Тұқымы: {{breed}}",
+	"price_label": "Бағасы: ${{price}}",
+	"login_title": "Кіру",
+	"email": "Email",
+	"enter_email": "Тіркелгі почтасын енгізіңіз",
+	"invalid_email": "Дұрыс email енгізіңіз",
+	"password": "Құпия сөз",
+	"enter_password": "Құпия сөзді енгізіңіз",
+	"short_password": "Құпия сөз кем дегенде 6 символ болуы керек",
+	"sign_in_email": "Email арқылы кіру",
+	"sign_in_google": "Google арқылы кіру",
+	"sign_in_github": "GitHub арқылы кіру",
+	"no_account": "Тіркелгіңіз жоқ па? Тіркелу",
+	"auth_error": "Аутентификация қатесі: {{error}}",
+	"map": {
+		"title": "Маркері бар карта",
+		"your_location": "Сіздің орныңыз",
+		"error_services_disabled": "Орналасқан жер қызметтері өшірілген.",
+		"error_permission_denied": "Орналасқан жерге рұқсат жоқ.",
+		"error_permission_denied_forever": "Орналасқан жерге рұқсат мәңгілікке берілмейді."
+	},
+	"shop": {
+		"shop.pushkina": {
+			"title": "Pushkina дүкені",
+			"desc": "Мекен-жайы: Alexandra Pushkina 72/1"
+		},
+		"shop.alatau": {
+			"title": "Alatau дүкені",
+			"desc": "Мекен-жайы: Alatau кешені"
+		},
+		"shop.shapagat": {
+			"title": "Shapagat дүкені",
+			"desc": "Мекен-жайы: Shapagat супермаркеті"
+		}
+	},
+	"profile": {
+		"title": "Профиль",
+		"tooltip_save": "Профильді сақтау",
+		"tooltip_edit": "Профильді өңдеу",
+		"tooltip_sign_out": "Шығу",
+		"default_bio": "Жануарлар мен табиғатты жақсы көремін.",
+		"error_pick_image": "Суретті таңдауда қате: {0}",
+		"saved": "Профиль сақталды",
+		"error_save": "Сақтау сәтсіз аяқталды: {0}",
+		"label_name": "Аты",
+		"label_email": "Email",
+		"label_bio": "Өзіңіз туралы",
+		"error_name_empty": "Атыңызды енгізіңіз",
+		"error_email_empty": "Email енгізіңіз",
+		"error_email_invalid": "Дұрыс email енгізіңіз",
+		"error_bio_empty": "Өзіңіз туралы айтыңыз"
+	},
+	"settings": {
+		"title": "Параметрлер",
+		"dark_mode": "Қараңғы режим",
+		"accent_color": "Акцент түсін таңдаңыз:",
+		"language": "Қолданба тілі",
+		"reset_button": "Барлық деректерді өшіру",
+		"reset_confirm_title": "Растау",
+		"reset_confirm_text": "Бұл жануар деректерін мәңгілікке өшіреді. Жалғастыру?",
+		"cancel": "Болдырмау",
+		"reset_action": "ӨШІРУ",
+		"reset_success": "Барлық деректер сәтті өшірілді.",
+		"reset_failure": "Өшіру сәтсіз аяқталды: {error}"
+	}
+}

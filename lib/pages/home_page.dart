@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../models/animal.dart';
 import '../providers/animal_provider.dart';
@@ -20,9 +21,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchCtrl = TextEditingController();
-  String _sortBy = 'Name ↑';
+  String _sortBy = 'sort.name_asc';
   bool _showItems = false;
   bool _isApiLoading = false;
+
+  // these keys match your JSON keys:
+  final _sortOptions = const [
+    'sort.name_asc',
+    'sort.name_desc',
+    'sort.price_asc',
+    'sort.price_desc',
+  ];
 
   @override
   void initState() {
@@ -47,22 +56,42 @@ class _HomePageState extends State<HomePage> {
     final term = _searchCtrl.text.toLowerCase();
 
     // Filter by name or breed
-    final filtered = allAnimals.where((a) {
-      return a.name.toLowerCase().contains(term) ||
-             a.breed.toLowerCase().contains(term);
-    }).toList()
-      // Then sort
+    final filtered = allAnimals
+        .where((a) =>
+            a.name.toLowerCase().contains(term) ||
+            a.breed.toLowerCase().contains(term))
+        .toList()
       ..sort((a, b) {
         switch (_sortBy) {
-          case 'Name ↓':  return b.name.compareTo(a.name);
-          case 'Price ↑': return a.price.compareTo(b.price);
-          case 'Price ↓': return b.price.compareTo(a.price);
-          default:         return a.name.compareTo(b.name);
+          case 'sort.name_desc':
+            return b.name.compareTo(a.name);
+          case 'sort.price_asc':
+            return a.price.compareTo(b.price);
+          case 'sort.price_desc':
+            return b.price.compareTo(a.price);
+          default: // 'sort.name_asc'
+            return a.name.compareTo(b.name);
         }
       });
 
+    Widget animatedItem(int idx) {
+      return AnimatedSlide(
+        offset: _showItems ? Offset.zero : const Offset(0, .1),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        child: AnimatedOpacity(
+          opacity: _showItems ? 1 : 0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+          child: AnimalTile(animal: filtered[idx], index: idx),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Animals for Sale')),
+      appBar: AppBar(
+        title: Text('home.title'.tr()),
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Column(
@@ -71,9 +100,9 @@ class _HomePageState extends State<HomePage> {
             // ── Search Bar ───────────────────────
             TextField(
               controller: _searchCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Search by name or breed',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                labelText: 'home.search_hint'.tr(),
+                prefixIcon: const Icon(Icons.search),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -83,8 +112,11 @@ class _HomePageState extends State<HomePage> {
             // ── Sort Dropdown ────────────────────
             DropdownButton<String>(
               value: _sortBy,
-              items: const ['Name ↑', 'Name ↓', 'Price ↑', 'Price ↓']
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+              items: _sortOptions
+                  .map((key) => DropdownMenuItem(
+                        value: key,
+                        child: Text(key.tr()),
+                      ))
                   .toList(),
               onChanged: (v) => setState(() => _sortBy = v!),
               isExpanded: true,
@@ -101,7 +133,6 @@ class _HomePageState extends State<HomePage> {
                   itemCount: filtered.length,
                   itemBuilder: (ctx, i) {
                     final animal = filtered[i];
-                    // Use the same hero tag you’ll use in DetailsPage
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: GestureDetector(
@@ -122,8 +153,10 @@ class _HomePageState extends State<HomePage> {
                                       ? Image.network(
                                           animal.imageUrl,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_,__,___) =>
-                                              const Icon(Icons.broken_image),
+                                          errorBuilder:
+                                              (_, __, ___) => const Icon(
+                                            Icons.broken_image,
+                                          ),
                                         )
                                       : const Icon(Icons.pets, size: 48)),
                             ),
@@ -137,63 +170,72 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
             ],
 
-            // ── Empty State ──────────────────────
-            if (filtered.isEmpty)
-              const Expanded(
-                child: Center(child: Text('No animals found.')),
-              )
-            else
-              // ── Staggered List/Grid ─────────────
-              Expanded(child: LayoutBuilder(
-                builder: (ctx, constraints) {
-                  final isWide = constraints.maxWidth > 600;
-
-                  Widget animatedItem(int idx) {
-                    final animal = filtered[idx];
-                    // Find the “true” index in the full list so deletes/edits work
-                    final trueIndex = allAnimals.indexOf(animal);
-
-                    return AnimatedSlide(
-                      offset:
-                          _showItems ? Offset.zero : const Offset(0, 0.1),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                      child: AnimatedOpacity(
-                        opacity: _showItems ? 1 : 0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                        child: AnimalTile(
-                          animal: animal,
-                          index: trueIndex,
+            // ── Animated Empty State ──────────────────────
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                switchInCurve: Curves.easeOutBack,
+                child: filtered.isEmpty
+                    // this Column is the “empty” state
+                    ? Column(
+                        key: const ValueKey('empty'),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // bounce‐in icon
+                          TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0.8, end: 1.0),
+                            duration: const Duration(milliseconds: 600),
+                            curve: Curves.easeOutBack,
+                            builder: (context, scale, child) {
+                              return Transform.scale(
+                                scale: scale,
+                                child: child,
+                              );
+                            },
+                            child: const Icon(
+                              Icons.pets,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // fade‐in text
+                          Text(
+                            'home.empty_message'.tr(),
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
+                      )
+                    // when you have items, swap in the real list/grid
+                    : Padding(
+                        key: const ValueKey('list'),
+                        padding: const EdgeInsets.only(top: 8),
+                        child: LayoutBuilder(
+                          builder: (_, constraints) {
+                            final isWide = constraints.maxWidth > 600;
+                            if (isWide) {
+                              return GridView.builder(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 3,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                ),
+                                itemCount: filtered.length,
+                                itemBuilder: (_, idx) => animatedItem(idx),
+                              );
+                            } else {
+                              return ListView.builder(
+                                itemCount: filtered.length,
+                                itemBuilder: (_, idx) => animatedItem(idx),
+                              );
+                            }
+                          },
                         ),
                       ),
-                    );
-                  }
-
-                  return isWide
-                      ? GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 3,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                          ),
-                          itemCount: filtered.length,
-                          itemBuilder: (_, idx) => FutureBuilder(
-                              future: Future.delayed(
-                                  Duration(milliseconds: idx * 100)),
-                              builder: (_, __) => animatedItem(idx)),
-                        )
-                      : ListView.builder(
-                          itemCount: filtered.length,
-                          itemBuilder: (_, idx) => FutureBuilder(
-                              future: Future.delayed(
-                                  Duration(milliseconds: idx * 100)),
-                              builder: (_, __) => animatedItem(idx)),
-                        );
-                },
-              )),
+              ),
+            ),
           ],
         ),
       ),
@@ -209,34 +251,39 @@ class _HomePageState extends State<HomePage> {
               context,
               MaterialPageRoute(builder: (_) => const AddAnimalPage()),
             ),
-            tooltip: 'Add Manually',
+            tooltip: 'home.tooltip_add_manual'.tr(),
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 12),
           // API add
           FloatingActionButton(
             heroTag: 'api_add',
-            onPressed: _isApiLoading ? null : () async {
-              setState(() => _isApiLoading = true);
-              try {
-                await provider.addAnimalFromApi('cat');
-              } catch (e) {
-                debugPrint('API add error: $e');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Couldn’t add from API: $e')),
-                );
-              } finally {
-                if (mounted) setState(() => _isApiLoading = false);
-              }
-            },
-            tooltip: 'Add from API',
+            onPressed: _isApiLoading
+                ? null
+                : () async {
+                    setState(() => _isApiLoading = true);
+                    try {
+                      await provider.addAnimalFromApi('cat');
+                    } catch (e) {
+                      debugPrint('API add error: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('home.snackbar_api_error'.tr(
+                            namedArgs: {'error': e.toString()},
+                          )),
+                        ),
+                      );
+                    } finally {
+                      if (mounted) setState(() => _isApiLoading = false);
+                    }
+                  },
+            tooltip: 'home.tooltip_add_api'.tr(),
             child: const Icon(Icons.image),
           ),
         ],
       ),
 
       // ── API Loading Overlay ──────────────
-      // (blocks taps under the FABs too)
       persistentFooterButtons: _isApiLoading
           ? [
               ModalBarrier(color: Colors.black38, dismissible: false),
@@ -245,7 +292,7 @@ class _HomePageState extends State<HomePage> {
                   height: 100,
                   child: Lottie.asset('animations/loading.json'),
                 ),
-              )
+              ),
             ]
           : null,
     );
@@ -254,14 +301,17 @@ class _HomePageState extends State<HomePage> {
   void _openDetails(BuildContext context, Animal animal) {
     final provider = context.read<AnimalProvider>();
     provider.selectAnimal(animal);
-    Navigator.of(context).push(PageRouteBuilder(
-      pageBuilder: (_, __, ___) => const DetailsPage(),
-      transitionsBuilder: (_, anim, __, child) {
-        final offset =
-            Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-                .animate(anim);
-        return SlideTransition(position: offset, child: child);
-      },
-    ));
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const DetailsPage(),
+        transitionsBuilder: (_, anim, __, child) {
+          final offset = Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(anim);
+          return SlideTransition(position: offset, child: child);
+        },
+      ),
+    );
   }
 }
