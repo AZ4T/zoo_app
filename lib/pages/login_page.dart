@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'register_page.dart';
 
 import '../widgets/bottom_nav_bar.dart';
 
@@ -15,10 +16,10 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
-  final _emailCtrl    = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
-  bool  _isLoading    = false;
+  bool _isLoading = false;
   String? _errorText;
 
   @override
@@ -34,14 +35,14 @@ class _LoginPageState extends State<LoginPage> {
 
     // 2) Clear previous errors & show loading
     setState(() {
-      _isLoading   = true;
-      _errorText   = null;
+      _isLoading = true;
+      _errorText = null;
     });
 
     try {
       // 3) Attempt Firebase email/password sign-in
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email:    _emailCtrl.text.trim(),
+        email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text.trim(),
       );
 
@@ -66,9 +67,10 @@ class _LoginPageState extends State<LoginPage> {
       if (kIsWeb) {
         await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
       } else {
-        final googleUser = await GoogleSignIn(
-          clientId: dotenv.env['GOOGLE_CLIENT_ID'],
-        ).signIn();
+        final googleUser =
+            await GoogleSignIn(
+              clientId: dotenv.env['GOOGLE_CLIENT_ID'],
+            ).signIn();
 
         if (googleUser == null) {
           // User aborted
@@ -78,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
         final auth = await googleUser.authentication;
         final cred = GoogleAuthProvider.credential(
           accessToken: auth.accessToken,
-          idToken:     auth.idToken,
+          idToken: auth.idToken,
         );
         await FirebaseAuth.instance.signInWithCredential(cred);
       }
@@ -94,9 +96,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _goToHome() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const BottomNavBar()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const BottomNavBar()));
   }
 
   @override
@@ -144,8 +146,9 @@ class _LoginPageState extends State<LoginPage> {
                       // — Password Field —
                       TextFormField(
                         controller: _passwordCtrl,
-                        decoration:
-                            const InputDecoration(labelText: 'Password'),
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                        ),
                         obscureText: true,
                         validator: (val) {
                           if (val == null || val.isEmpty) {
@@ -172,14 +175,16 @@ class _LoginPageState extends State<LoginPage> {
                       // — Email Sign-In Button —
                       ElevatedButton(
                         onPressed: _isLoading ? null : _signInWithEmail,
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text('Sign in with Email'),
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Text('Sign in with Email'),
                       ),
                       const SizedBox(height: 12),
 
@@ -193,6 +198,20 @@ class _LoginPageState extends State<LoginPage> {
                         label: const Text('Sign in with Google'),
                         onPressed: _isLoading ? null : _signInWithGoogle,
                       ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed:
+                            _isLoading
+                                ? null
+                                : () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const RegisterPage(),
+                                    ),
+                                  );
+                                },
+                        child: const Text("Don't have an account? Sign up"),
+                      ),
                     ],
                   ),
                 ),
@@ -204,9 +223,7 @@ class _LoginPageState extends State<LoginPage> {
               Positioned.fill(
                 child: Container(
                   color: Colors.black45,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
               ),
           ],
